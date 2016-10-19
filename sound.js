@@ -2,11 +2,11 @@ var audioContext = new AudioContext();
 // var source = audioContext.createMediaElementSource(myAudio);
 
 
-
 //creating audio nodes
 
 var oscillator = audioContext.createOscillator();
 var gainNode = audioContext.createGain();
+var anotherGainNode = audioContext.createGain();
 var distortion = audioContext.createWaveShaper();
 var biquadFilter = audioContext.createBiquadFilter();
 var compressor = audioContext.createDynamicsCompressor();
@@ -18,7 +18,7 @@ var WIDTH = window.innerWidth;
 var HEIGHT = window.innerHeight;
 
 var maxFreq = 2000;
-var maxVol = 1;
+var maxVol = 7;
 
 var initFreq = 100;
 var initVol = 0.5;
@@ -49,6 +49,7 @@ var CurX, CurY;
 
 document.onmousemove = updatePage;
 
+
 function updatePage(e) {
 	CurX = (window.Event) ? e.pageX : event.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
 	CurY = (window.Event) ? e.pageY : event.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
@@ -57,11 +58,17 @@ function updatePage(e) {
 	centerCurY = -(CurY - HEIGHT / 2);
 
 
-	oscillator.frequency.value = Math.sqrt(Math.pow(centerCurX, 2) + Math.pow(centerCurY, 2))/WIDTH * maxFreq;
-	gainNode.gain.value = Math.sqrt(Math.pow(centerCurX, 2) + Math.pow(centerCurY, 2))/HEIGHT * maxVol;
+	oscillator.frequency.value = Math.sqrt(Math.pow(centerCurX, 2) + Math.pow(centerCurY, 2)) / WIDTH * maxFreq;
+	gainNode.gain.value = Math.sqrt(Math.pow(centerCurX, 2) + Math.pow(centerCurY, 2)) / HEIGHT * maxVol;
 
-	// console.log(oscillator.frequency.value, centerCurY);
+	anotherGainNode.gain.value = Math.sqrt(Math.pow(centerCurX, 2) + Math.pow(centerCurY, 2)) / HEIGHT * maxVol * 5;
+
 }
+
+document.onclick = function () {
+	anotherGainNode.gain.value = 0;
+	console.log('hhe');
+};
 
 function random(number1, number2) {
 	var randomNo = number1 + (Math.floor(Math.random() * (number2 - number1)) + 1);
@@ -75,15 +82,12 @@ canvas.height = HEIGHT;
 var canvasCtx = canvas.getContext('2d');
 
 
+var url = 'test.wav';
 
-var url  = 'test.wav';
-
-/* --- set up web audio --- */
-//create the context
-//...and the source
 var source = audioContext.createBufferSource();
-//connect it to the destination so you can hear it.
-source.connect(gainNode);
+source.connect(anotherGainNode);
+anotherGainNode.connect(audioContext.destination);
+
 
 /* --- load buffer ---  */
 var request = new XMLHttpRequest();
@@ -92,24 +96,25 @@ request.open('GET', url, true);
 //webaudio paramaters
 request.responseType = 'arraybuffer';
 //Once the request has completed... do this
-request.onload = function() {
-	audioContext.decodeAudioData(request.response, function(response) {
+request.onload = function () {
+	audioContext.decodeAudioData(request.response, function (response) {
 		/* --- play the sound AFTER the buffer loaded --- */
 		//set the buffer to the response we just received.
 		source.buffer = response;
 		//start(0) should play asap.
 		source.start(0);
 		source.loop = true;
-		console.log('the guck')
-	}, function () { console.error('The request failed.'); } );
+	}, function () {
+		console.error('The request failed.');
+	});
 }
 //Now that the request has been defined, actually make the request. (send it)
 request.send();
 
 
-oscillator.connect(gainNode);
+// oscillator.connect(pinkNoise);
 // pinkNoise.connect(distortion);
 // distortion.connect(biquadFilter);
 // biquadFilter.connect(compressor);
 // compressor.connect(gainNode);
-gainNode.connect(audioContext.destination);
+// gainNode.connect(audioContext.destination);
