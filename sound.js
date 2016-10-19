@@ -2,6 +2,7 @@ var audioContext = new AudioContext();
 // var source = audioContext.createMediaElementSource(myAudio);
 
 
+
 //creating audio nodes
 
 var oscillator = audioContext.createOscillator();
@@ -59,7 +60,7 @@ function updatePage(e) {
 	oscillator.frequency.value = Math.sqrt(Math.pow(centerCurX, 2) + Math.pow(centerCurY, 2))/WIDTH * maxFreq;
 	gainNode.gain.value = Math.sqrt(Math.pow(centerCurX, 2) + Math.pow(centerCurY, 2))/HEIGHT * maxVol;
 
-	console.log(oscillator.frequency.value, centerCurY);
+	// console.log(oscillator.frequency.value, centerCurY);
 }
 
 function random(number1, number2) {
@@ -72,6 +73,39 @@ canvas.width = WIDTH;
 canvas.height = HEIGHT;
 
 var canvasCtx = canvas.getContext('2d');
+
+
+
+var url  = 'test.wav';
+
+/* --- set up web audio --- */
+//create the context
+//...and the source
+var source = audioContext.createBufferSource();
+//connect it to the destination so you can hear it.
+source.connect(gainNode);
+
+/* --- load buffer ---  */
+var request = new XMLHttpRequest();
+//open the request
+request.open('GET', url, true);
+//webaudio paramaters
+request.responseType = 'arraybuffer';
+//Once the request has completed... do this
+request.onload = function() {
+	audioContext.decodeAudioData(request.response, function(response) {
+		/* --- play the sound AFTER the buffer loaded --- */
+		//set the buffer to the response we just received.
+		source.buffer = response;
+		//start(0) should play asap.
+		source.start(0);
+		source.loop = true;
+		console.log('the guck')
+	}, function () { console.error('The request failed.'); } );
+}
+//Now that the request has been defined, actually make the request. (send it)
+request.send();
+
 
 oscillator.connect(gainNode);
 // pinkNoise.connect(distortion);
