@@ -1,12 +1,10 @@
-/**
- * Created by Matt on 10/6/2016.
- */
 var w = window.innerWidth, h = window.innerHeight;
 function setup() {
 	createCanvas(w, h);
 	frameRate(60);
-	// colorMode(HSB, 100);
+	// filter(BLUR,30);
 }
+
 
 var r = (w<h) ? w / 3 : h / 3; // radius is a third of the smaller screen dimension
 var x_off = 1000, y_off = 1000, z_off = 1000;
@@ -39,18 +37,26 @@ function draw() {
 	X_SPEED = mouseVector.x;
 	Y_SPEED = mouseVector.y;
 
-	var rgb = sqrt(sq(mouseX-w/2) + sq(-(mouseY-h/2))) / 3;
+	var rgb = sqrt(sq(mouseX - w / 2) + sq(-(mouseY - h / 2))) / 3.3;
+	if (rgb>=255)
+		rgb = 255;
+	else if (rgb<=72)
+		rgb = 72;
+	// console.log(rgb);
 
 
 	// draw shape:
 	push();
 	translate(w / 2, h / 2);
-	background(218, 217, 199);   // bg color
+	background(219, 217, 201);
 	noStroke();
 	fill(rgb, 115, 133);    // color
-	// fill(349, 45, 82); // HSB
-	// fill(349, r_rgb, 82); // HSB
 	beginShape();
+	drawingContext.shadowOffsetX = 0;
+	drawingContext.shadowOffsetY = 0;
+	drawingContext.shadowBlur = 1000;
+	drawingContext.shadowColor = "rgba(255 , 115, 133, 0.2)";
+	// console.log(drawingContext.shadowColor);
 	for (var a = 0; a<TWO_PI; a += TWO_PI / vertices_amount) {
 		// var x = r * sin(a)*mouseVector.y/-10;
 		// var y = r * cos(a)*mouseVector.x/10;
@@ -78,13 +84,4 @@ function draw() {
 	z_off += Z_SPEED;
 	x_off += X_SPEED;
 	y_off += Y_SPEED;
-
-
-	// FPS counter for debugging
-	// if (typeof prevTime !== "undefined") {
-	// 	var now = Date.now();
-	// 	dom_fps.innerHTML = (Math.round(1000 / (now - prevTime))) + ' fps';
-	// }
-	// prevTime = Date.now();
 }
-

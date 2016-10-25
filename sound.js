@@ -1,53 +1,43 @@
 var audioContext = new AudioContext();
 // var source = audioContext.createMediaElementSource(myAudio);
 
-
-//creating audio nodes
-
-var oscillator = audioContext.createOscillator();
-var gainNode = audioContext.createGain();
 var anotherGainNode = audioContext.createGain();
-var distortion = audioContext.createWaveShaper();
-var biquadFilter = audioContext.createBiquadFilter();
-var compressor = audioContext.createDynamicsCompressor();
-var pinkNoise = audioContext.createPinkNoise();
-
+// var bass = 10;
+var bassFilter = audioContext.createBiquadFilter();
+bassFilter.type = "lowshelf";
+bassFilter.frequency.value = 200;  // switches to 400 in UI
+// bassFilter.gain.value = bass;  // you'll need to hook this to UI too
 
 // spec initial values
 var WIDTH = window.innerWidth;
 var HEIGHT = window.innerHeight;
 
+var canvas = document.querySelector('#fps');
+canvas.width = WIDTH;
+canvas.height = HEIGHT;
+
 var maxFreq = 2000;
-var maxVol = 7;
+var maxVol = 1;
 
 var initFreq = 100;
 var initVol = 0.5;
-
-// oscillator options
-
-oscillator.type = 'sine';
-oscillator.frequency.value = initFreq;
-oscillator.start();
-
-biquadFilter.type = 'allpass';
-biquadFilter.frequency.value = 1000;
-biquadFilter.gain.value = 25;
-
-compressor.threshold.value = -50;
-compressor.knee.value = 40;
-compressor.ratio.value = 12;
-compressor.reduction.value = -20;
-compressor.attack.value = 0;
-compressor.release.value = 0.25;
-
-gainNode.gain.value = initVol;
-
 
 //Mouse pointer
 
 var CurX, CurY;
 
 document.onmousemove = updatePage;
+
+
+var canvasCtx = canvas.getContext('2d');
+
+
+var url = 'test.mp3';
+
+var source = audioContext.createBufferSource();
+source.connect(bassFilter);
+bassFilter.connect(anotherGainNode);
+anotherGainNode.connect(audioContext.destination);
 
 
 function updatePage(e) {
@@ -57,36 +47,12 @@ function updatePage(e) {
 	centerCurX = CurX - WIDTH / 2;
 	centerCurY = -(CurY - HEIGHT / 2);
 
-
-	oscillator.frequency.value = Math.sqrt(Math.pow(centerCurX, 2) + Math.pow(centerCurY, 2)) / WIDTH * maxFreq;
-	gainNode.gain.value = Math.sqrt(Math.pow(centerCurX, 2) + Math.pow(centerCurY, 2)) / HEIGHT * maxVol;
-
 	anotherGainNode.gain.value = Math.sqrt(Math.pow(centerCurX, 2) + Math.pow(centerCurY, 2)) / HEIGHT * maxVol * 5;
+	source.playbackRate.value = Math.sqrt(Math.pow(centerCurX, 2) + Math.pow(centerCurY, 2)) / HEIGHT + 0.1;
+	bassFilter.gain.value = Math.sqrt(Math.pow(centerCurX, 2) + Math.pow(centerCurY, 2)) / HEIGHT * 4;
 
+	// console.log(bassFilter.gain.value);
 }
-
-document.onclick = function () {
-	anotherGainNode.gain.value = 0;
-	console.log('hhe');
-};
-
-function random(number1, number2) {
-	var randomNo = number1 + (Math.floor(Math.random() * (number2 - number1)) + 1);
-	return randomNo;
-}
-
-var canvas = document.querySelector('#fps');
-canvas.width = WIDTH;
-canvas.height = HEIGHT;
-
-var canvasCtx = canvas.getContext('2d');
-
-
-var url = 'test.wav';
-
-var source = audioContext.createBufferSource();
-source.connect(anotherGainNode);
-anotherGainNode.connect(audioContext.destination);
 
 
 /* --- load buffer ---  */
@@ -110,11 +76,3 @@ request.onload = function () {
 }
 //Now that the request has been defined, actually make the request. (send it)
 request.send();
-
-
-// oscillator.connect(pinkNoise);
-// pinkNoise.connect(distortion);
-// distortion.connect(biquadFilter);
-// biquadFilter.connect(compressor);
-// compressor.connect(gainNode);
-// gainNode.connect(audioContext.destination);
